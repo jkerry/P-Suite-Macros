@@ -1,0 +1,35 @@
+#!/usr/bin/perl
+use File::Find qw(find);
+use Cwd 'abs_path';
+use POSIX qw/strftime/;
+use File::Copy;
+
+my $Help =	"###########\n## pmake ##\n###########\n".
+        	"Description:\n\tP-Suite macro that creates an empty directory structure in accordance with the paper:\n\tNoble WS (2009) A Quick Guide to Organizing Computational Biology Projects. PLoS Comput. Biol. 5(7): e1000424. doi:10.1371/journal.pcbi.1000424\n\twith a draft notebook file and a first entry. pmake also creates hidden .projectInfo files in each subdirectory for use by the P-Suite utilities.\n".
+        	"Usage: \n\tpmake <project name>\n";
+
+
+if(@ARGV != 0){
+	print $Help;
+}
+else{
+	my $root = abs_path();
+	
+	open(META, ">>".$root."/.tempProjectInfo");
+	print(META "root\t".$root."\n");
+	close(META);
+	
+	sub wanted {
+		my $file = $_;
+    	if(-d $file){
+    		print(".");
+    		copy($root."/.tempProjectInfo", $File::Find::name."/.projectInfo");
+    	}
+	}
+	
+	find(\&wanted, $root);
+	system("rm .tempProjectInfo");
+	system("pcomment \"Updated the project,  root path is set to: $root\"");
+	
+	print("\nDone updating project\n");
+}

@@ -1,0 +1,44 @@
+#!/usr/bin/perl
+use Cwd 'abs_path';
+use POSIX qw/strftime/;
+use File::Copy;
+
+my $Help =	"###########\n## pexec ##\n###########\n".
+        	"Description:\n\tP-Suite macro to execute a command within the project and record it in the notebook.txt file.\n".
+        	"Usage: \n\tpexec <program> <options>\n";
+
+
+if(@ARGV < 1 || $ARGV[0] eq "--help" || $ARGV[0] eq  "-help" || $ARGV[0] eq "--h" || $ARGV[0] eq "-h"){
+	print $Help;
+}
+else{
+	# read in projectInfo to get the information on project root
+	open(INPUT, ".projectInfo") or die "ERROR: Could not open file .projectInfo for reading.\n\n".$Help;
+	my $root = 'fail';
+	#appending a preventative new line
+	while(my $line = <INPUT>){
+		chomp($line);
+		if($line =~ m/root	(.+)/){
+			$root = $1;
+		}
+	}
+	if($root eq 'fail'){
+		print("A failure has been detected, no .projectInfo file found, or the root property is missing from the file.\n\n".$help);
+	}
+	else{
+		my $command = "";
+		foreach (@ARGV) {
+        	$command =$command."$_ ";
+		}
+		my $notebook = $root."/results/notebook.txt"; 
+		system($command);
+		print("\n".$result."\n");
+		my $time = strftime( "%A, %B %d, %Y", localtime(time()) );
+		open(NBTEXT, ">>".$notebook) or die "ERROR: Could not open file notebook.txt for writing.\n\n".$Help;
+		print(NBTEXT $time.":\tExecution:\t".$command."\n");
+		
+	}
+	
+	
+	
+}

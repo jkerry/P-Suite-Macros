@@ -1,0 +1,60 @@
+#!/usr/bin/perl
+use File::Find qw(find);
+use Cwd 'abs_path';
+use POSIX qw/strftime/;
+use File::Copy;
+
+my $Help =	"###########\n## pmake ##\n###########\n".
+        	"Description:\n\tP-Suite macro that creates an empty directory structure in accordance with the paper:\n\tNoble WS (2009) A Quick Guide to Organizing Computational Biology Projects. PLoS Comput. Biol. 5(7): e1000424. doi:10.1371/journal.pcbi.1000424\n\twith a draft notebook file and a first entry. pmake also creates hidden .projectInfo files in each subdirectory for use by the P-Suite utilities.\n".
+        	"Usage: \n\tpmake <project name>\n";
+
+
+if(@ARGV != 1 || $ARGV[0] eq "--help" || $ARGV[0] eq  "-help" || $ARGV[0] eq "--h" || $ARGV[0] eq "-h"){
+	print $Help;
+}
+else{
+	
+	mkdir($ARGV[0]);
+	chdir($ARGV[0]);
+	
+	my $root = abs_path();
+	my $doc = $root."/doc";
+	my $paper = $doc."/paper";
+	my $data = $root."/data";
+	my $src = $root."/src";
+	my $bin = $root."/bin";
+	my $results = $root."/results";
+	#files:
+	my $notebook = $results."/notebook.txt";
+	print("creating subdirectories\n");
+	mkdir($doc);
+	mkdir($paper);
+	mkdir($data);
+	mkdir($src);
+	mkdir($bin);
+	mkdir($results);
+	print("adding notebook.txt file and generating a first post\n");
+	my $time = strftime( "%A, %B %d, %Y", localtime(time()) );
+	open(NBTEXT, ">>".$notebook) or die "ERROR: Could not open file notebook.txt for writing.\n\n".$Help;
+	print(NBTEXT "Project Notebook: $ARGV[0]\n###########################\n\n".$time.":\tCreated project:\t".$root."\n");
+	close(NBTEXT);
+	print("Creating meta-info files for other utilities.\n");
+	
+	open(META, ">>".$root."/.tempProjectInfo");
+	print(META "root\t".$root."\n");
+	close(META);
+	
+	sub wanted {
+		my $file = $_;
+    	if(-d $file){
+    		print(".");
+    		copy($root."/.tempProjectInfo", $File::Find::name."/.projectInfo");
+    	}
+	}
+	
+	find(\&wanted, $root);
+	system("rm .tempProjectInfo");
+	
+	
+	print("\nDone creating project: ".$root."\n");
+}

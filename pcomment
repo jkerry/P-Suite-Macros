@@ -1,0 +1,39 @@
+#!/usr/bin/perl
+use Cwd 'abs_path';
+use POSIX qw/strftime/;
+use File::Copy;
+
+my $Help =	"##############\n## pcomment ##\n##############\n".
+        	"Description:\n\tP-Suite Macro to add a comment to the project's notebook.txt file. The entry it time stamped and noted as a comment.\n".
+        	"Usage: \n\tmkpro project-name\n";
+
+
+if(@ARGV != 1 || $ARGV[0] eq "--help" || $ARGV[0] eq  "-help" || $ARGV[0] eq "--h" || $ARGV[0] eq "-h"){
+	print $Help;
+}
+else{
+	# read in projectInfo to get the information on project root
+	open(INPUT, ".projectInfo") or die "ERROR: Could not open file .projectInfo for reading.\n\n".$Help;
+	my $root = 'fail';
+	#appending a preventative new line
+	while(my $line = <INPUT>){
+		chomp($line);
+		if($line =~ m/root	(.+)/){
+			$root = $1;
+		}
+	}
+	if($root eq 'fail'){
+		print("A failure has been detected, no .projectInfo file found, or the root property is missing from the file.\n\n".$help);
+	}
+	else{
+		my $notebook = $root."/results/notebook.txt"; 
+		
+		my $time = strftime( "%A, %B %d, %Y", localtime(time()) );
+		open(NBTEXT, ">>".$notebook) or die "ERROR: Could not open file notebook.txt for writing.\n\n".$Help;
+		print(NBTEXT $time.":\tComment:\t".$ARGV[0]."\n");
+		
+	}
+	
+	
+	
+}
